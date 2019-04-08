@@ -1,0 +1,53 @@
+{
+    "territories": 6,
+    "regions": [
+        {
+            "id": 1,
+            "name":"Veneto",
+            "borders": [
+                { "id": 4},
+                { "id": 3},
+                { "id": 2}
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Lombardia",
+            "borders": [
+                { "id": 1},
+                { "id": 3},
+                { "id": 5}
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Trentino Alto Adige",
+            "borders": [
+                { "id": 1},
+                { "id": 2}
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Fruli Venezia Giulia",
+            "borders": [
+                { "id": 1}
+            ]
+        },
+        {
+            "id": 5,
+            "name": "Piemonte",
+            "borders": [
+                { "id": 6},
+                { "id": 2}
+            ]
+        },
+        {
+            "id": 6,
+            "name": "Valle d'Aosta",
+            "borders": [
+                { "id": 5}
+            ]
+        }
+    ]
+}    
