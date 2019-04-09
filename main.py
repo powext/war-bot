@@ -20,7 +20,7 @@ class Region:
         borders = " "
         for border in self.borders:
             borders = borders + str(border) + " "
-        return "Regione nome: "+ self.name +" id: "+ str(self.id) +" borders: "+borders
+        return "Region name: "+ self.name +" id: "+ str(self.id) +" borders: "+borders
 
 # Territory class
 class Territory:
@@ -40,7 +40,7 @@ class Territory:
         borders = " "
         for border in self.borders:
             borders = borders + str(border) + " "
-        return "Territorio nome: "+ self.name +" id: "+ str(self.id) +" borders: "+borders
+        return "Territory name: "+ self.name +" id: "+ str(self.id) +" borders: "+borders
 
 import json, svg
 from random import randint
@@ -61,22 +61,22 @@ with open('data.json') as json_data:
     data = json.load(json_data)
     territories_total = data['territories']
 
-    # loading regions, territories and borders
+    # creating regions, territories instances
     for territory in data['regions']:
         borders = []
         pathids = []
         for border in territory['borders']: 
             borders.append(border['id'])
+        
+        # generating a color for each region
         colors = svg.generate_colors(50)
         region_color = colors[randint(0, 200)]
+
         for pathid in territory['pathids']:
             pathids.append(pathid['id'])
-        region = Region(territory['id'], territory['name'], borders.copy(), region_color, pathids.copy())
-        regions.append(region)
-        print(region)
-        territory = Territory(territory['id'], territory['name'], borders.copy(), pathids.copy())
-        territories.append(territory)
-        print(territory)        
+
+        regions.append(Region(territory['id'], territory['name'], borders.copy(), region_color, pathids.copy()))
+        territories.append(Territory(territory['id'], territory['name'], borders.copy(), pathids.copy()))      
 
     # init svg
     svg.reset(regions)
@@ -88,15 +88,12 @@ with open('data.json') as json_data:
         region_striker = regions[randint(1, territories_total)-1]
         print("Trovata regione: "+region_striker.name)
 
-        #checking if this random attacker is still alive
         if region_striker.alive:
-            print("Regione ancora in vita")
             # attacked is a flag that is True when the attacker has attacked
             attacked = False
 
             # attacking
             while not attacked:
-                print("Cercando di attaccare")
 
                 # getting a random border from region
                 if len(region_striker.borders) > 1:
@@ -105,30 +102,18 @@ with open('data.json') as json_data:
                     random_border = region_striker.borders[0]
                 territory_target = territories[random_border-1]
                 region_target = regions[territory_target.region_id-1]
-                print(region_striker.name+" ha scelto di attaccare: "+region_target.name+" sul territorio di: "+territory_target.name)
 
                 if region_target.id != region_striker.id:
                     attacked = True
-                    print("Attacco possibile")
 
                     # generating attacker victory possibilities
                     attacker_region_possibilities = (region_striker.territories * 100) / (region_striker.territories+region_target.territories)
 
                     # random attack score
                     attack = randint(1, 100)
-                    print("Attacco: "+str(attack))
 
-                    # checking who won
                     if attack<=attacker_region_possibilities:
-                        # Cose da fare quando vince la regione attaccante
-                        # - Aggiungere +1 ai territori conquistati alla regione vincente
-                        # - Togliere -1 ai torritori conquistati alla regione sconfitta
-                        # - Aggiungere i nuovi confini alla regione vincente
-                        # - Rimuovere i vecchi confini alla regione sconfitta
-                        # - Aggiornare la regione "padrona" nel territorio della battaglia
-
-                        # attacker won
-                        # updating attacker and defender
+                        # updating attacker and defencer instances
                         region_striker.territories += 1
                         region_target.territories -= 1
                         territory_target.region_id = region_striker.id
@@ -136,34 +121,24 @@ with open('data.json') as json_data:
                         # updating svg
                         svg.update_territory_color(region_striker, territory_target, round)
 
-                        # adding new borders to winner attacker and removing
+                        # updating attacker and defencer borders
                         for newborder in territory_target.borders:
-                            print("Aggiungo il confine: "+str(newborder)+" alla regione vincente")
                             region_striker.borders.append(newborder)
 
                         app = region_target.borders.copy()
                         for border in territory_target.borders:
                             for oldborder in region_target.borders:
                                 if border == oldborder:
-                                    print("Rimuovo il confine: "+str(oldborder)+" alla regione perdente")
                                     app.remove(oldborder)
                                     break
                         region_target.borders = app
-                        # print("Regione attaccante: "+region_striker.name+" Regione difendente: "+region_target.name+" Vincente: "+region_striker.name+"\n")
-                        print(region_striker)
-                        print(region_target)
-                        print("Attacco vincente!\n")
+
                         if region_target.territories == 0:
                             region_target.alive = False
-                            print(region_target.name+" è stato completamente sconfitto!")
                         if region_striker.territories == territories_total:
-                            print("Vince la battaglia: "+region_striker.name)
+                            print("The winner is: "+region_striker.name)
                             victory = True
                         round += 1
                     else:
-                        # print("Regione attaccante: "+region_striker.name+" Regione difendente: "+region_target.name+" Vincente: "+region_target.name+"\n")
-                        print("Attacco fallito!\n")
                         round += 1
-        else:
-            print("Regione già eliminata\n")
                     
