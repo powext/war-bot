@@ -1,6 +1,6 @@
 # Region class
 class Region:
-    def __init__(self, id, name, borders):
+    def __init__(self, id, name, borders, color, pathids):
         # id is used for index purpose
         self.id = id
         # name exists only for communication purpose
@@ -11,6 +11,10 @@ class Region:
         self.alive = True
         # borders is a list that contains all ids of the neighboring regions 
         self.borders = borders
+        # region color diplayed in svg
+        self.color = color
+        # region path ids in the svg 
+        self.pathids = pathids
     
     def __str__(self):
         borders = " "
@@ -20,7 +24,7 @@ class Region:
 
 # Territory class
 class Territory:
-    def __init__(self, id, name, borders):
+    def __init__(self, id, name, borders, pathids):
         # id is used for index purpose
         self.id = id
         # name exists only for communication purpose
@@ -29,6 +33,8 @@ class Territory:
         self.region_id = id
         # borders is a list that contains all ids of the neighboring territories 
         self.borders = borders
+        # region path ids in the svg 
+        self.pathids = pathids
     
     def __str__(self):
         borders = " "
@@ -36,7 +42,7 @@ class Territory:
             borders = borders + str(border) + " "
         return "Territorio nome: "+ self.name +" id: "+ str(self.id) +" borders: "+borders
 
-import json
+import json, svg
 from random import randint
 
 # regions is a list that contains all the regions loaded from data.json
@@ -47,6 +53,8 @@ territories = []
 territories_total = None
 # victory is a flag that is True when the game ended
 victory = False
+# current round
+round = 0
 
 # loading data from data.json
 with open('data.json') as json_data:
@@ -56,15 +64,22 @@ with open('data.json') as json_data:
     # loading regions, territories and borders
     for territory in data['regions']:
         borders = []
+        pathids = []
         for border in territory['borders']: 
             borders.append(border['id'])
-        region = Region(territory['id'], territory['name'], borders.copy())
+        colors = svg.generate_colors(50)
+        region_color = colors[randint(0, 200)]
+        for pathid in territory['pathids']:
+            pathids.append(pathid['id'])
+        region = Region(territory['id'], territory['name'], borders.copy(), region_color, pathids.copy())
         regions.append(region)
         print(region)
-        territory = Territory(territory['id'], territory['name'], borders.copy())
+        territory = Territory(territory['id'], territory['name'], borders.copy(), pathids.copy())
         territories.append(territory)
-        print(territory)
+        print(territory)        
 
+    # init svg
+    svg.reset(regions)
 
     # game starts
     while not victory:
@@ -118,6 +133,9 @@ with open('data.json') as json_data:
                         region_target.territories -= 1
                         territory_target.region_id = region_striker.id
 
+                        # updating svg
+                        svg.update_territory_color(region_striker, territory_target, round)
+
                         # adding new borders to winner attacker and removing
                         for newborder in territory_target.borders:
                             print("Aggiungo il confine: "+str(newborder)+" alla regione vincente")
@@ -141,10 +159,11 @@ with open('data.json') as json_data:
                         if region_striker.territories == territories_total:
                             print("Vince la battaglia: "+region_striker.name)
                             victory = True
-                        
+                        round += 1
                     else:
                         # print("Regione attaccante: "+region_striker.name+" Regione difendente: "+region_target.name+" Vincente: "+region_target.name+"\n")
                         print("Attacco fallito!\n")
+                        round += 1
         else:
             print("Regione già eliminata\n")
                     
